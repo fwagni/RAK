@@ -1,0 +1,79 @@
+/* ============================================================
+   RAK — Design tokens
+   Palette inspirée du logo : bleu nuit profond + or.
+   Deux thèmes : "dark" (par défaut, ambiance du logo) et
+   "light" (journée / forte luminosité). Le "chrome" de
+   l'application (en-tête, sidebar, barre de navigation basse)
+   reste volontairement sombre + or dans les deux thèmes : c'est
+   l'identité de marque, elle ne change pas. Seule la zone de
+   contenu (fonds, cartes, textes) s'adapte.
+   ============================================================ */
+:root {
+  /* ---------- Constantes (identiques dans les deux thèmes) ---------- */
+  --color-red-100: #f6e2dc;
+  --color-teal-100: #dcefe9;
+  --color-indigo-100: #e7eaf3;
+  --color-indigo-800: #1b2a4a;
+
+  --chrome-bg: #0d1526;           /* fond de l'en-tête / sidebar / nav basse */
+  --chrome-text: #f5f0e6;         /* texte clair sur le chrome sombre */
+  --chrome-text-muted: rgba(245, 240, 230, 0.6);
+  --chrome-active-chip: rgba(232, 163, 61, 0.16);
+
+  --accent: #e8a33d;              /* or du logo */
+  --accent-strong: #f2b658;
+  --ink-on-accent: #14213a;       /* texte sombre lisible sur fond or */
+
+  --danger: #c85a3f;
+  --success: #35917f;
+
+  /* Typographie */
+  --font-display: 'Fraunces', 'Georgia', serif;
+  --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --fs-h1: 1.5rem; --fs-h2: 1.15rem; --fs-h3: 1rem;
+  --fs-body: 0.95rem; --fs-small: 0.8rem; --fs-xsmall: 0.7rem;
+
+  /* Espacement (échelle 4px) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
+
+  /* Rayons */
+  --radius-s: 8px; --radius-m: 14px; --radius-l: 20px;
+
+  --nav-height: 64px;
+  --header-height: 56px;
+
+  /* ---------- Thème DARK (par défaut) ---------- */
+  --bg-app: #0a1120;
+  --bg-surface: #131c33;
+  --bg-surface-raised: #182444;
+  --text-primary: #eee9dd;
+  --text-muted: #949bb1;
+  --heading-color: #efe3c8;
+  --link-color: #93aee0;
+  --brand-solid: #3b5590;
+  --border: #263056;
+  --avatar-bg: #22315a;
+  --avatar-text: #f0dcae;
+  --surface-muted: #182242;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.45), 0 8px 22px rgba(0, 0, 0, 0.4);
+  --shadow-raised: 0 14px 36px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Thème LIGHT ---------- */
+[data-theme="light"] {
+  --bg-app: #faf7f2;
+  --bg-surface: #ffffff;
+  --bg-surface-raised: #ffffff;
+  --text-primary: #1c1a17;
+  --text-muted: #6b6459;
+  --heading-color: #16213e;
+  --link-color: #1b2a4a;
+  --brand-solid: #1b2a4a;
+  --border: #e4ddd0;
+  --avatar-bg: #e7eaf3;
+  --avatar-text: #16213e;
+  --surface-muted: #f2ede3;
+  --shadow-card: 0 1px 2px rgba(28, 26, 23, 0.06), 0 4px 14px rgba(28, 26, 23, 0.06);
+  --shadow-raised: 0 8px 24px rgba(22, 33, 62, 0.16);
+}

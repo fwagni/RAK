@@ -1,0 +1,175 @@
+/* ============================================================
+   Structure générale de l'app
+   Mobile : header fixe + contenu + barre de navigation basse
+   Desktop (>= 960px) : sidebar fixe à gauche + contenu large
+   Le "chrome" (header/sidebar/nav basse) reste toujours sombre +
+   or, quel que soit le thème choisi pour le contenu.
+   ============================================================ */
+
+#app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header (mobile) ---------- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sp-4);
+  background: var(--chrome-bg);
+  color: var(--chrome-text);
+}
+.app-header .brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+.brand-mark-img {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.header-actions { display: flex; align-items: center; gap: var(--sp-2); }
+.theme-toggle-btn {
+  width: 32px; height: 32px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  color: var(--chrome-text);
+  display: flex; align-items: center; justify-content: center;
+}
+.theme-toggle-btn svg { width: 17px; height: 17px; }
+
+.lang-toggle {
+  display: inline-flex;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  padding: 2px;
+}
+.lang-toggle button {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-xsmall);
+  font-weight: 700;
+  color: var(--chrome-text-muted);
+}
+.lang-toggle button.active {
+  background: var(--accent);
+  color: var(--ink-on-accent);
+}
+
+/* ---------- Page title bar (under header, per-screen) ---------- */
+.page-title-bar {
+  padding: var(--sp-5) var(--sp-4) var(--sp-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.page-title-bar h1 { font-size: 1.3rem; }
+.page-title-bar .subtitle { color: var(--text-muted); font-size: var(--fs-small); margin-top: 2px; }
+
+/* ---------- Main content ---------- */
+#view {
+  flex: 1;
+  padding: 0 var(--sp-4) calc(var(--nav-height) + var(--sp-6));
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ---------- Bottom nav (mobile) — fait partie du "chrome" ---------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--nav-height);
+  background: var(--chrome-bg);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  z-index: 30;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.bottom-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--chrome-text-muted);
+  font-size: var(--fs-xsmall);
+  font-weight: 600;
+}
+.bottom-nav a svg { width: 22px; height: 22px; }
+.bottom-nav a.active { color: var(--accent-strong); }
+.bottom-nav a.active svg { color: var(--accent-strong); }
+.bottom-nav a .nav-icon-wrap {
+  width: 40px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+}
+.bottom-nav a.active .nav-icon-wrap { background: var(--chrome-active-chip); }
+
+/* ---------- Desktop layout ---------- */
+@media (min-width: 960px) {
+  #app-shell { flex-direction: row; }
+
+  .app-header { display: none; }
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--chrome-bg);
+    color: var(--chrome-text);
+    min-height: 100vh;
+    padding: var(--sp-6) var(--sp-4);
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+  }
+  .sidebar .brand {
+    display: flex; align-items: center; gap: var(--sp-3);
+    font-family: var(--font-display); font-size: 1.25rem; font-weight: 600;
+    padding: 0 var(--sp-2) var(--sp-6);
+  }
+  .sidebar .brand-mark-img { width: 34px; height: 34px; border-radius: 10px; }
+  .sidebar nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .sidebar nav a {
+    display: flex; align-items: center; gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-3);
+    border-radius: var(--radius-s);
+    text-decoration: none;
+    color: var(--chrome-text-muted);
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .sidebar nav a svg { width: 19px; height: 19px; flex-shrink: 0; }
+  .sidebar nav a.active { background: rgba(255,255,255,0.08); color: var(--chrome-text); }
+  .sidebar nav a.active svg { color: var(--accent); }
+  .sidebar .sidebar-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: var(--sp-4);
+  }
+
+  .bottom-nav { display: none; }
+
+  #view {
+    max-width: 1000px;
+    padding: var(--sp-7) var(--sp-8) var(--sp-8);
+  }
+
+  .page-title-bar { padding: 0 0 var(--sp-5); }
+}

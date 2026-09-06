@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RAK — Gestion d'atelier de couture</title>
+<meta name="description" content="Gérez vos clients, mesures, commandes, finances, employés et achats — tout en un.">
+<meta name="theme-color" content="#0d1526">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<div id="app-shell">
+
+  <!-- ============ Sidebar (desktop) ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="icons/logo-mark.png" alt="RAK" class="brand-mark-img">
+      <span>RAK</span>
+    </div>
+    <nav id="sidebar-nav"><!-- rempli par app.js --></nav>
+    <div class="sidebar-footer">
+      <div class="lang-toggle" id="lang-toggle-desktop">
+        <button data-lang="fr">FR</button>
+        <button data-lang="en">EN</button>
+      </div>
+      <button class="theme-toggle-btn" id="theme-toggle-desktop" aria-label="Thème"></button>
+    </div>
+  </aside>
+
+  <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
+
+    <!-- ============ Header (mobile) ============ -->
+    <header class="app-header">
+      <div class="brand">
+        <img src="icons/logo-mark.png" alt="RAK" class="brand-mark-img">
+        <span>RAK</span>
+      </div>
+      <div class="header-actions">
+        <div class="lang-toggle" id="lang-toggle-mobile">
+          <button data-lang="fr">FR</button>
+          <button data-lang="en">EN</button>
+        </div>
+        <button class="theme-toggle-btn" id="theme-toggle-mobile" aria-label="Thème"></button>
+      </div>
+    </header>
+
+    <!-- ============ Contenu de la page ============ -->
+    <main id="view" role="main">
+      <div class="spinner"></div>
+    </main>
+
+  </div>
+
+  <!-- ============ Bottom nav (mobile) ============ -->
+  <nav class="bottom-nav" id="bottom-nav"><!-- rempli par app.js --></nav>
+
+</div>
+
+<div id="sheet-root"></div>
+<div id="toast-root"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
