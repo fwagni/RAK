@@ -12,6 +12,10 @@
   flex-direction: column;
 }
 
+/* La sidebar est un composant desktop : cachée par défaut (mobile),
+   elle n'apparaît qu'à partir de 960px (voir media query plus bas). */
+.sidebar { display: none; }
+
 /* ---------- Header (mobile) ---------- */
 .app-header {
   position: sticky;
