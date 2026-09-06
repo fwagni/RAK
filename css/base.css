@@ -2,6 +2,11 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Filet de sécurité : toute icône SVG a une taille par défaut raisonnable,
+   même si son contexte ne la précise pas explicitement (règles plus
+   spécifiques ailleurs — boutons, nav... — prennent le dessus normalement). */
+svg { width: 20px; height: 20px; flex-shrink: 0; }
+
 html, body {
   margin: 0;
   padding: 0;

@@ -77,9 +77,27 @@ function translateIfOption(schema, value) {
 }
 
 // ---------- Chargement des listes de relation (pour les <select>) ----------
+// Un court cache mémoire évite de re-télécharger la liste des clients (par
+// exemple) à chaque ouverture de formulaire — c'est ce qui causait la
+// latence perçue à l'ouverture. Invalidé automatiquement après un
+// enregistrement (voir invalidateRelationCache plus bas).
+const relationCache = new Map(); // entityKey -> { data, ts }
+const RELATION_CACHE_TTL = 45000;
+
+export function invalidateRelationCache() {
+  relationCache.clear();
+}
+
 async function loadRelationOptions(field) {
   const targetSchema = SCHEMAS[field.target];
-  const records = await listRecords(field.target);
+  const cached = relationCache.get(field.target);
+  let records;
+  if (cached && (Date.now() - cached.ts) < RELATION_CACHE_TTL) {
+    records = cached.data;
+  } else {
+    records = await listRecords(field.target);
+    relationCache.set(field.target, { data: records, ts: Date.now() });
+  }
   return records.map((r) => ({ id: r.id, label: r[targetSchema.titleProp] || "(sans titre)" }));
 }
 
@@ -168,20 +186,43 @@ export async function renderListPage(entityKey, { filterProp, filterValue, heade
 export async function openRecordForm(entityKey, existing, { filterValue, onSaved, presetTitle } = {}) {
   const schema = SCHEMAS[entityKey];
   const isEdit = !!existing;
+  const relationFields = schema.fields.filter((f) => f.type === "relation");
 
-  const relationFieldsData = {};
-  for (const field of schema.fields.filter((f) => f.type === "relation")) {
-    try { relationFieldsData[field.name] = await loadRelationOptions(field); }
-    catch { relationFieldsData[field.name] = []; }
-  }
-
-  const fieldsHtml = schema.fields.map((field) => renderField(field, existing, relationFieldsData, filterValue)).join("");
-
+  // 1) La fiche s'ouvre TOUT DE SUITE, avec un indicateur de chargement si
+  // des listes (client, modèle...) doivent encore être récupérées. Avant,
+  // le code attendait en silence que TOUTES ces listes soient chargées,
+  // une par une, avant même d'afficher quoi que ce soit : plusieurs
+  // secondes sans aucun retour visuel pour la personne qui a tapé "Ajouter".
   openSheet(`
     <div class="sheet-header">
       <h2>${isEdit ? t("edit") : t("add")} — ${t(schema.titleKey)}</h2>
       <button class="btn-icon" data-close-overlay>${icons.close}</button>
     </div>
+    <div id="sheet-body">${relationFields.length ? '<div class="spinner"></div>' : ""}</div>
+  `, {
+    onMount: (root) => {
+      root.querySelector('[data-close-overlay]').addEventListener("click", closeSheet);
+    }
+  });
+
+  // 2) Les listes de relation sont chargées EN PARALLÈLE (Promise.all)
+  // plutôt que l'une après l'autre, et servies depuis le cache si elles
+  // ont déjà été chargées il y a moins de 45 secondes.
+  const relationFieldsData = {};
+  try {
+    const results = await Promise.all(relationFields.map((f) => loadRelationOptions(f)));
+    relationFields.forEach((f, i) => { relationFieldsData[f.name] = results[i]; });
+  } catch {
+    relationFields.forEach((f) => { relationFieldsData[f.name] = []; });
+  }
+
+  // Si la personne a fermé la fiche pendant le chargement, on s'arrête là.
+  const sheetBody = document.getElementById("sheet-body");
+  if (!sheetBody) return;
+
+  const fieldsHtml = schema.fields.map((field) => renderField(field, existing, relationFieldsData, filterValue)).join("");
+
+  sheetBody.outerHTML = `
     <form id="record-form">
       ${fieldsHtml}
       <div class="sheet-actions">
@@ -189,45 +230,49 @@ export async function openRecordForm(entityKey, existing, { filterValue, onSaved
       </div>
       ${isEdit ? `<button type="button" class="btn btn-danger btn-block" style="margin-top:8px" id="delete-btn">${icons.trash} ${t("delete")}</button>` : ""}
     </form>
-  `, {
-    onMount: (root) => {
-      root.querySelector('[data-close-overlay]').addEventListener("click", closeSheet);
-      wirePhotoFields(root, schema);
+  `;
 
+  const root = sheetRoot();
+  wirePhotoFields(root, schema);
+
+  if (isEdit) {
+    root.querySelector("#delete-btn").addEventListener("click", async () => {
+      if (!confirm(t("delete_confirm"))) return;
+      try {
+        await deleteRecord(entityKey, existing.id);
+        invalidateRelationCache();
+        toast(t("deleted"));
+        closeSheet();
+        if (onSaved) onSaved();
+      } catch (err) { toast(errorMessage(err)); }
+    });
+  }
+
+  root.querySelector("#record-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    const originalLabel = submitBtn.textContent;
+    submitBtn.textContent = t("loading");
+    try {
+      const properties = await collectFormValues(root, schema, filterValue, existing);
       if (isEdit) {
-        root.querySelector("#delete-btn").addEventListener("click", async () => {
-          if (!confirm(t("delete_confirm"))) return;
-          try {
-            await deleteRecord(entityKey, existing.id);
-            toast(t("deleted"));
-            closeSheet();
-            if (onSaved) onSaved();
-          } catch (err) { toast(errorMessage(err)); }
-        });
+        await updateRecord(entityKey, existing.id, properties);
+      } else {
+        await createRecord(entityKey, properties);
       }
-
-      root.querySelector("#record-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        try {
-          const properties = await collectFormValues(root, schema, filterValue, existing);
-          if (isEdit) {
-            await updateRecord(entityKey, existing.id, properties);
-          } else {
-            await createRecord(entityKey, properties);
-          }
-          toast(t("saved"));
-          closeSheet();
-          if (onSaved) onSaved();
-        } catch (err) {
-          toast(errorMessage(err));
-        } finally {
-          submitBtn.disabled = false;
-        }
-      });
+      invalidateRelationCache();
+      toast(t("saved"));
+      closeSheet();
+      if (onSaved) onSaved();
+    } catch (err) {
+      toast(errorMessage(err));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalLabel;
     }
   });
+}
 }
 
 function renderField(field, existing, relationFieldsData, presetFilterValue) {
