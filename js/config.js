@@ -6,7 +6,7 @@
 //    et le README) puis collez ici l'URL de déploiement obtenue
 //    (elle ressemble à : https://script.google.com/macros/s/XXXX/exec)
 //
-export const APPS_SCRIPT_URL = "COLLEZ_ICI_VOTRE_URL_APPS_SCRIPT";
+export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmy1UTOZI4heebjOFDIUX2u_oNVvMmxoo1jOQDTB_7aoYKzcFKPiDJ5XVK_O3Gj6wh/exec";
 
 // 2) Ne changez rien ci-dessous : ce sont les identifiants des bases
 //    Notion déjà créées dans l'espace "Mon Atelier — Gestion".
