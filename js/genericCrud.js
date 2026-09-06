@@ -311,7 +311,6 @@ export async function openRecordForm(entityKey, existing, { filterValue, onSaved
     }
   });
 }
-}
 
 function renderField(field, existing, relationFieldsData, presetFilterValue) {
   const label = t(field.labelKey);
