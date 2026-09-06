@@ -7,8 +7,9 @@
 // ============================================================
 import { t, getLang } from "./i18n.js";
 import { icons } from "./icons.js";
-import { listRecords, createRecord, updateRecord, deleteRecord, uploadPhoto, ApiError } from "./api.js";
+import { listRecords, listRecordsBatch, createRecord, updateRecord, deleteRecord, uploadPhoto, ApiError } from "./api.js";
 import { SCHEMAS } from "./schema.js";
+import { openReceiptView } from "./receipt.js";
 
 const view = () => document.getElementById("view");
 const sheetRoot = () => document.getElementById("sheet-root");
@@ -35,8 +36,14 @@ export function openSheet(innerHTML, { onMount } = {}) {
         ${innerHTML}
       </div>
     </div>`;
+  // Fermeture au clic sur le fond assombri UNIQUEMENT (pas ses enfants).
   sheetRoot().querySelector("[data-close-overlay]").addEventListener("click", (e) => {
     if (e.target.hasAttribute("data-close-overlay")) closeSheet();
+  });
+  // Le bouton "X" a son propre marqueur, distinct du fond assombri, et se
+  // ferme au clic n'importe où sur le bouton (y compris son icône).
+  sheetRoot().querySelectorAll("[data-close-btn]").forEach((btn) => {
+    btn.addEventListener("click", closeSheet);
   });
   if (onMount) onMount(sheetRoot());
 }
@@ -80,7 +87,9 @@ function translateIfOption(schema, value) {
 // Un court cache mémoire évite de re-télécharger la liste des clients (par
 // exemple) à chaque ouverture de formulaire — c'est ce qui causait la
 // latence perçue à l'ouverture. Invalidé automatiquement après un
-// enregistrement (voir invalidateRelationCache plus bas).
+// enregistrement (voir invalidateRelationCache plus bas). De plus, toutes
+// les listes manquantes sont récupérées en UNE seule requête groupée
+// (important sur mobile où chaque aller-retour réseau coûte cher).
 const relationCache = new Map(); // entityKey -> { data, ts }
 const RELATION_CACHE_TTL = 45000;
 
@@ -88,17 +97,30 @@ export function invalidateRelationCache() {
   relationCache.clear();
 }
 
-async function loadRelationOptions(field) {
-  const targetSchema = SCHEMAS[field.target];
-  const cached = relationCache.get(field.target);
-  let records;
-  if (cached && (Date.now() - cached.ts) < RELATION_CACHE_TTL) {
-    records = cached.data;
-  } else {
-    records = await listRecords(field.target);
-    relationCache.set(field.target, { data: records, ts: Date.now() });
+async function loadAllRelationOptions(relationFields) {
+  const uniqueTargets = [...new Set(relationFields.map((f) => f.target))];
+  const now = Date.now();
+  const targetsNeeded = uniqueTargets.filter((target) => {
+    const cached = relationCache.get(target);
+    return !cached || (now - cached.ts) >= RELATION_CACHE_TTL;
+  });
+
+  if (targetsNeeded.length) {
+    try {
+      const batch = await listRecordsBatch(targetsNeeded);
+      targetsNeeded.forEach((target) => relationCache.set(target, { data: batch[target] || [], ts: Date.now() }));
+    } catch {
+      targetsNeeded.forEach((target) => relationCache.set(target, { data: [], ts: Date.now() }));
+    }
   }
-  return records.map((r) => ({ id: r.id, label: r[targetSchema.titleProp] || "(sans titre)" }));
+
+  const result = {};
+  relationFields.forEach((field) => {
+    const targetSchema = SCHEMAS[field.target];
+    const records = (relationCache.get(field.target) || {}).data || [];
+    result[field.name] = records.map((r) => ({ id: r.id, label: r[targetSchema.titleProp] || "(sans titre)" }));
+  });
+  return result;
 }
 
 // ============================================================
@@ -150,6 +172,8 @@ export async function renderListPage(entityKey, { filterProp, filterValue, heade
       if (schema.statusField && r[schema.statusField]) {
         const label = formatValue(schema, { type: "select", options: schema.fields.find(f => f.name === schema.statusField).options }, r[schema.statusField]);
         trail = `<span class="badge badge-${badgeColorFor(schema, r[schema.statusField])}">${label}</span>`;
+      } else if (schema.flagField && r[schema.flagField] === true) {
+        trail = `<span class="badge badge-red">${t("badge_stock_bas")}</span>`;
       } else if (r["Montant (FCFA)"] != null) {
         trail = `<span class="item-amount">${Number(r["Montant (FCFA)"]).toLocaleString()} F</span>`;
       }
@@ -196,24 +220,32 @@ export async function openRecordForm(entityKey, existing, { filterValue, onSaved
   openSheet(`
     <div class="sheet-header">
       <h2>${isEdit ? t("edit") : t("add")} — ${t(schema.titleKey)}</h2>
-      <button class="btn-icon" data-close-overlay>${icons.close}</button>
+      <button class="btn-icon" data-close-btn>${icons.close}</button>
     </div>
     <div id="sheet-body">${relationFields.length ? '<div class="spinner"></div>' : ""}</div>
-  `, {
-    onMount: (root) => {
-      root.querySelector('[data-close-overlay]').addEventListener("click", closeSheet);
-    }
-  });
+  `);
 
-  // 2) Les listes de relation sont chargées EN PARALLÈLE (Promise.all)
-  // plutôt que l'une après l'autre, et servies depuis le cache si elles
-  // ont déjà été chargées il y a moins de 45 secondes.
-  const relationFieldsData = {};
+  // 2) Toutes les listes de relation manquantes sont chargées EN UNE
+  // SEULE requête groupée (plutôt qu'une requête par liste), et servies
+  // depuis le cache si elles ont déjà été chargées il y a < 45 secondes.
+  let relationFieldsData = {};
   try {
-    const results = await Promise.all(relationFields.map((f) => loadRelationOptions(f)));
-    relationFields.forEach((f, i) => { relationFieldsData[f.name] = results[i]; });
+    relationFieldsData = await loadAllRelationOptions(relationFields);
   } catch {
     relationFields.forEach((f) => { relationFieldsData[f.name] = []; });
+  }
+
+  // Statistiques additionnelles en lecture seule (ex : nombre de commandes
+  // assignées à cet employé), si le schéma en définit.
+  let statsHtml = "";
+  if (isEdit && schema.statsQuery) {
+    try {
+      const related = await listRecords(schema.statsQuery.targetEntity, {
+        filterProp: schema.statsQuery.filterProp,
+        filterValue: existing.id,
+      });
+      statsHtml = schema.statsQuery.render(related, t);
+    } catch { /* silencieux : les stats sont un bonus, pas bloquant */ }
   }
 
   // Si la personne a fermé la fiche pendant le chargement, on s'arrête là.
@@ -224,16 +256,22 @@ export async function openRecordForm(entityKey, existing, { filterValue, onSaved
 
   sheetBody.outerHTML = `
     <form id="record-form">
+      ${statsHtml}
       ${fieldsHtml}
       <div class="sheet-actions">
         <button type="submit" class="btn btn-primary btn-block">${t("save")}</button>
       </div>
+      ${entityKey === "commandes" && isEdit ? `<button type="button" class="btn btn-ghost btn-block" style="margin-top:8px" id="receipt-btn">🧾 ${t("action_receipt")}</button>` : ""}
       ${isEdit ? `<button type="button" class="btn btn-danger btn-block" style="margin-top:8px" id="delete-btn">${icons.trash} ${t("delete")}</button>` : ""}
     </form>
   `;
 
   const root = sheetRoot();
   wirePhotoFields(root, schema);
+
+  if (entityKey === "commandes" && isEdit) {
+    root.querySelector("#receipt-btn").addEventListener("click", () => openReceiptView(existing));
+  }
 
   if (isEdit) {
     root.querySelector("#delete-btn").addEventListener("click", async () => {
@@ -329,6 +367,15 @@ function renderField(field, existing, relationFieldsData, presetFilterValue) {
       </div>
     </div>`;
   }
+  if (field.type === "checkbox") {
+    const checked = existingVal === true;
+    return `<div class="form-field form-field-checkbox">
+      <label class="checkbox-label">
+        <input type="checkbox" name="${escAttr(field.name)}" ${checked ? "checked" : ""}>
+        <span>${label}</span>
+      </label>
+    </div>`;
+  }
   return "";
 }
 
@@ -386,6 +433,8 @@ async function collectFormValues(root, schema, presetFilterValue, existing) {
       properties[field.name] = value === "" ? null : Number(value);
     } else if (field.type === "relation") {
       properties[field.name] = value ? [value] : [];
+    } else if (field.type === "checkbox") {
+      properties[field.name] = input.checked;
     } else {
       properties[field.name] = value;
     }

@@ -137,8 +137,29 @@ const dict = {
     cat_fermeture: "Fermeture éclair", cat_outillage: "Outillage",
     unite_metre: "Mètre", unite_piece: "Pièce", unite_rouleau: "Rouleau",
     unite_kg: "Kg", unite_litre: "Litre",
+    field_stock_bas: "Stock bas",
+    badge_stock_bas: "Stock bas",
     achats_empty_title: "Aucun achat enregistré",
     achats_empty_text: "Enregistrez vos achats de tissus, fils, boutons...",
+
+    // Statistiques employé
+    stats_commandes_assignees: "Commandes assignées",
+    stats_commandes_en_cours: "En cours",
+
+    // Reçu
+    action_receipt: "Générer le reçu",
+    receipt_title: "Reçu de commande",
+    receipt_thanks: "Merci pour votre confiance !",
+
+    // Tableau de bord — retard, stock, revenus
+    dash_overdue: "En retard",
+    dash_low_stock: "Stock bas",
+    dash_contact: "Contacter",
+    dash_revenue_chart: "Revenus — 6 derniers mois",
+    chart_income: "Entrées",
+    chart_expense: "Sorties",
+    client_total_spent: "Total commandé",
+    client_orders_count: "Commandes",
 
     // Paramètres
     settings_title: "Paramètres",
@@ -278,8 +299,29 @@ const dict = {
     cat_fermeture: "Zipper", cat_outillage: "Equipment",
     unite_metre: "Meter", unite_piece: "Piece", unite_rouleau: "Roll",
     unite_kg: "Kg", unite_litre: "Liter",
+    field_stock_bas: "Low stock",
+    badge_stock_bas: "Low stock",
     achats_empty_title: "No purchases yet",
     achats_empty_text: "Record purchases of fabric, thread, buttons...",
+
+    // Staff stats
+    stats_commandes_assignees: "Assigned orders",
+    stats_commandes_en_cours: "In progress",
+
+    // Receipt
+    action_receipt: "Generate receipt",
+    receipt_title: "Order receipt",
+    receipt_thanks: "Thank you for your trust!",
+
+    // Dashboard — overdue, stock, revenue
+    dash_overdue: "Overdue",
+    dash_low_stock: "Low stock",
+    dash_contact: "Contact",
+    dash_revenue_chart: "Revenue — last 6 months",
+    chart_income: "Income",
+    chart_expense: "Expenses",
+    client_total_spent: "Total ordered",
+    client_orders_count: "Orders",
 
     settings_title: "Settings",
     settings_language: "Language",

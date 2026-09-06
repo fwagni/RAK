@@ -116,7 +116,24 @@ L'application s'installe comme une vraie appli, avec son icône.
 
 ---
 
-## Ce qui est inclus aujourd'hui
+## Nouveautés (fonctionnalités ajoutées)
+
+- **Reçu imprimable** : sur une commande déjà enregistrée, un bouton "Générer le reçu" ouvre une vue propre (logo, client, montant, acompte, solde) et lance l'impression du téléphone — choisir "Enregistrer en PDF" dans la boîte de dialogue d'impression pour obtenir un fichier partageable.
+- **Rappels de livraison** : le tableau de bord signale les commandes en retard (en rouge) et celles à livrer cette semaine, chacune avec un bouton WhatsApp pré-rempli vers le client.
+- **Alerte de stock bas** : nécessite une petite action de votre part (voir juste en dessous), puis les articles concernés apparaissent en badge rouge sur le tableau de bord.
+- **Historique client enrichi** : la fiche client affiche maintenant le total dépensé et le nombre de commandes.
+- **Graphique de revenus** : entrées/sorties des 6 derniers mois, directement sur le tableau de bord.
+- **Suivi des employés** : la fiche d'un employé affiche le nombre de commandes qui lui sont assignées.
+
+### Une seule action manuelle nécessaire dans Notion
+
+Pour activer l'alerte de stock bas, ouvrez la base **"Achats & Stock"** dans Notion et ajoutez une propriété :
+- Nom : `Stock bas`
+- Type : **Case à cocher (Checkbox)**
+
+Cochez-la manuellement sur un article quand son stock devient bas — il apparaîtra alors en alerte sur le tableau de bord. Tant que cette propriété n'existe pas, l'application fonctionne normalement, simplement sans cette alerte.
+
+
 
 - Tableau de bord (clients, commandes en cours, livraisons de la semaine, solde du mois)
 - Clients (fiche + historique complet : mesures, modèles/tissus, commandes)

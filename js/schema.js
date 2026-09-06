@@ -32,6 +32,19 @@ export const SCHEMAS = {
     emptyTitleKey: "employes_empty_title",
     emptyTextKey: "employes_empty_text",
     subtitle: (r) => r["Rôle"] || "",
+    statsQuery: {
+      targetEntity: "commandes",
+      filterProp: "Employé assigné",
+      render: (commandes, t) => {
+        const enCours = commandes.filter((c) => !["Livré", "Annulé"].includes(c["Statut"])).length;
+        return `<div class="card" style="margin-bottom:16px; background:var(--surface-muted);">
+          <div class="detail-grid" style="margin:0;">
+            <div class="detail-item"><div class="label">${t("stats_commandes_assignees")}</div><div class="value">${commandes.length}</div></div>
+            <div class="detail-item"><div class="label">${t("stats_commandes_en_cours")}</div><div class="value">${enCours}</div></div>
+          </div>
+        </div>`;
+      },
+    },
     fields: [
       { name: "Nom", type: "text", labelKey: "field_nom", required: true },
       { name: "Rôle", type: "select", labelKey: "field_role", options: [
@@ -164,6 +177,7 @@ export const SCHEMAS = {
     emptyTitleKey: "achats_empty_title",
     emptyTextKey: "achats_empty_text",
     subtitle: (r) => r["Catégorie"] || "",
+    flagField: "Stock bas",
     fields: [
       { name: "Article", type: "text", labelKey: "field_article", required: true },
       { name: "Catégorie", type: "select", labelKey: "field_categorie_achat", options: [
@@ -181,6 +195,7 @@ export const SCHEMAS = {
       { name: "Fournisseur", type: "text", labelKey: "field_fournisseur" },
       { name: "Date d'achat", type: "date", labelKey: "field_date_achat" },
       { name: "Atelier", type: "text", labelKey: "field_atelier" },
+      { name: "Stock bas", type: "checkbox", labelKey: "field_stock_bas", optional: true },
     ],
   },
 };

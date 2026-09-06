@@ -181,7 +181,16 @@
 .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--sp-3); }
 
 .photo-field { display: flex; gap: var(--sp-3); align-items: center; }
-.photo-preview {
+
+.checkbox-label {
+  display: flex; align-items: center; gap: var(--sp-3);
+  cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+  width: 20px; height: 20px; flex-shrink: 0;
+  accent-color: var(--accent);
+}
+.form-field-checkbox label { margin-bottom: 0; }.photo-preview {
   width: 72px; height: 72px; border-radius: var(--radius-s);
   background: var(--surface-muted);
   border: 1px dashed var(--border);
@@ -258,3 +267,49 @@
   margin: var(--sp-6) auto;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Reçu imprimable ---------- */
+#receipt-print-view { position: fixed; top: -10000px; left: -10000px; }
+.receipt {
+  width: 340px;
+  padding: var(--sp-5);
+  background: #ffffff;
+  color: #1c1a17;
+  font-family: var(--font-body);
+}
+.receipt-header { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.receipt-header img { width: 40px; height: 40px; border-radius: 8px; }
+.receipt-header h2 { font-family: var(--font-display); margin: 0; color: #16213e; }
+.receipt-header p { margin: 0; font-size: var(--fs-small); color: #6b6459; }
+.receipt-row { display: flex; justify-content: space-between; gap: var(--sp-4); padding: 6px 0; font-size: 0.9rem; }
+.receipt-row span { color: #6b6459; }
+.receipt hr { border: none; border-top: 1px dashed #ccc; margin: var(--sp-3) 0; }
+.receipt-total { font-size: 1.1rem; }
+.receipt-total span, .receipt-total strong { color: #16213e; }
+.receipt-footer { text-align: center; margin-top: var(--sp-5); font-size: var(--fs-small); color: #6b6459; }
+
+@media print {
+  body * { visibility: hidden; }
+  #receipt-print-view, #receipt-print-view * { visibility: visible; }
+  #receipt-print-view {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: center;
+  }
+}
+
+/* ---------- Graphique revenus ---------- */
+.chart-wrap { text-align: center; }
+.chart-legend { display: flex; justify-content: center; gap: var(--sp-4); margin-top: var(--sp-2); font-size: var(--fs-xsmall); color: var(--text-muted); }
+.chart-legend span { display: flex; align-items: center; gap: 5px; }
+.chart-legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+
+/* ---------- Rappels de livraison ---------- */
+.reminder-row { display: flex; align-items: center; gap: var(--sp-3); }
+.whatsapp-link {
+  width: 34px; height: 34px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(53, 145, 127, 0.15);
+  color: var(--success);
+  flex-shrink: 0;
+}
+.whatsapp-link svg { width: 17px; height: 17px; }

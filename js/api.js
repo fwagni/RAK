@@ -56,6 +56,24 @@ export async function getRecord(entityKey, pageId) {
   return callGet({ action: "get", pageId });
 }
 
+// ---- Endpoints groupés (moins d'allers-retours réseau, important sur mobile) ----
+
+export async function listRecordsBatch(entityKeys) {
+  const ids = entityKeys.map(dsId);
+  const arrays = await callGet({ action: "batchList", dataSourceIds: ids.join(",") });
+  const out = {};
+  entityKeys.forEach((k, i) => { out[k] = arrays[i]; });
+  return out;
+}
+
+export async function getDashboardData() {
+  return callGet({ action: "dashboard" });
+}
+
+export async function getClientDetail(pageId) {
+  return callGet({ action: "clientDetail", pageId });
+}
+
 export async function createRecord(entityKey, properties) {
   return callPost({ action: "create", dataSourceId: dsId(entityKey), properties });
 }
